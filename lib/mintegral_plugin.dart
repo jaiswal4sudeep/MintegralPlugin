@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 
 typedef InitSuccessCallback = void Function();
 typedef InitFailCallback = void Function(String error);
-typedef AdLoadCallback = void Function(bool success, {String? error});
+typedef AdLoadCallback = void Function(InterstitialAd? ad, {String? error});
 
 class MintegralPlugin {
   static const MethodChannel _channel = MethodChannel('mintegral_plugin');
@@ -29,21 +29,40 @@ class MintegralPlugin {
     }
   }
 
-  //! Load and Show Interstitial Ad
-  static Future<void> loadAndShowAd({
+  //! Load Ad (DOES NOT SHOW)
+  static Future<void> loadAd({
     required String placementId,
     required String unitId,
     required AdLoadCallback adLoadCallback,
   }) async {
     try {
-      final bool success = await _channel.invokeMethod('loadAndShowAd', {
-        'placementId': placementId,
-        'unitId': unitId,
-      });
+      final Map<dynamic, dynamic> response = await _channel.invokeMethod(
+        'loadAd',
+        {'placementId': placementId, 'unitId': unitId},
+      );
 
-      adLoadCallback(success);
+      if (response['success'] == true) {
+        adLoadCallback(InterstitialAd(response['adId']));
+      } else {
+        adLoadCallback(null, error: response['error']);
+      }
     } catch (e) {
-      adLoadCallback(false, error: e.toString());
+      adLoadCallback(null, error: e.toString());
     }
+  }
+
+  //! Show Ad
+  static Future<void> showAd(InterstitialAd ad) async {
+    await _channel.invokeMethod('showAd', {'adId': ad.adId});
+  }
+}
+
+// Placeholder class for InterstitialAd
+class InterstitialAd {
+  final String adId;
+  InterstitialAd(this.adId);
+
+  Future<void> show() async {
+    await MintegralPlugin.showAd(this);
   }
 }

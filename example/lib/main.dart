@@ -55,13 +55,17 @@ class _MintegralScreenState extends State<MintegralScreen> {
       _statusMessage = 'Loading Ad...';
     });
 
-    MintegralPlugin.loadAndShowAd(
+    MintegralPlugin.loadAd(
       placementId: '1855435',
       unitId: '3778402',
-      adLoadCallback: (success, {error}) {
-        if (success) {
+      adLoadCallback: (ad, {error}) async {
+        if (ad != null) {
           setState(() {
-            _statusMessage = 'Ad Loaded and Displayed ✅';
+            _statusMessage = 'Ad Loaded ✅ Showing Ad...';
+          });
+          await Future.delayed(Durations.long2, () async => await ad.show());
+          setState(() {
+            _statusMessage = 'Ad Displayed Successfully ✅';
           });
         } else {
           setState(() {

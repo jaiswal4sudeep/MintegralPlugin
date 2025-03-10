@@ -13,6 +13,7 @@ import com.mbridge.msdk.out.MBridgeSDKFactory;
 import com.mbridge.msdk.out.MBridgeIds;
 import com.mbridge.msdk.out.RewardInfo;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -20,8 +21,8 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 
 public class MintegralPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
   private MethodChannel channel;
@@ -47,13 +48,12 @@ public class MintegralPlugin implements FlutterPlugin, MethodCallHandler, Activi
         MBridgeSDK sdk = MBridgeSDKFactory.getMBridgeSDK();
         Map<String, String> map = sdk.getMBConfigurationMap(appId, appKey);
         sdk.init(map, context.getApplicationContext());
-
         result.success(true);
       } else {
         result.error("INIT_ERROR", "App ID or App Key is missing", null);
       }
     }
-    else if (call.method.equals("loadAndShowAd")) {
+    else if (call.method.equals("loadAd")) {
       String placementId = call.argument("placementId");
       String unitId = call.argument("unitId");
 
@@ -63,21 +63,25 @@ public class MintegralPlugin implements FlutterPlugin, MethodCallHandler, Activi
           @Override
           public void onLoadCampaignSuccess(MBridgeIds ids) {
             Log.i(TAG, "Ad Loaded: " + ids.toString());
-            if (interstitialHandler.isReady()) {
-              interstitialHandler.show();
-              Log.i(TAG, "Ad is ready and displayed.");
-            }
-            result.success(true);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("adId", ids.getUnitId());
+
+            result.success(response);
           }
 
           @Override
           public void onResourceLoadSuccess(MBridgeIds ids) {
-            Log.i(TAG, "Resources Loaded: " + ids.toString());
+            Log.i(TAG, "Ad Resources Loaded: " + ids.toString());
           }
 
           @Override
           public void onResourceLoadFail(MBridgeIds ids, String errorMsg) {
-            result.error("LOAD_FAILED", errorMsg, null);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", errorMsg);
+            result.success(response);
           }
 
           @Override
@@ -112,13 +116,21 @@ public class MintegralPlugin implements FlutterPlugin, MethodCallHandler, Activi
 
           @Override
           public void onEndcardShow(MBridgeIds ids) {
-            Log.i(TAG, "Endcard Displayed");
+            Log.i(TAG, "End card Displayed");
           }
         });
 
         interstitialHandler.load();
       } else {
         result.error("LOAD_ERROR", "Placement ID or Unit ID is missing", null);
+      }
+    }
+    else if (call.method.equals("showAd")) {
+      if (interstitialHandler != null && interstitialHandler.isReady()) {
+        interstitialHandler.show();
+        result.success(true);
+      } else {
+        result.error("SHOW_ERROR", "Ad is not ready or handler is null", null);
       }
     }
     else {
