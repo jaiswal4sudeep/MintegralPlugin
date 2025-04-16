@@ -35,8 +35,8 @@ class _MintegralScreenState extends State<MintegralScreen> {
     });
 
     MintegralPlugin.initialize(
-      appId: '325814',
-      appKey: '8b7a42cc02990666b693a9d5eca1944c',
+      appId: '<APP_ID>',
+      appKey: '<APP_KEY>',
       onInitSuccess: () {
         setState(() {
           _statusMessage = 'Mintegral SDK Initialized Successfully ✅';
@@ -56,8 +56,8 @@ class _MintegralScreenState extends State<MintegralScreen> {
     });
 
     MintegralPlugin.loadAd(
-      placementId: '1855435',
-      unitId: '3778402',
+      placementId: '<PLACEMENT_ID>',
+      unitId: '<UNIT_ID>',
       adLoadCallback: (ad, {error}) async {
         if (ad != null) {
           setState(() {
